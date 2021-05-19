@@ -23,7 +23,27 @@ void debug_out(vector<string> args, int idx, int LINE_NUM, Head H, Tail... T) {
     #define debug(...) 42
 #endif
 
-// vector <int> dp;
+// do the sieve
+void sieve (vector <int>& fact, int n) {
+    // find the number of factors
+    for (int i = 2; i <= n; i++) {
+        if (fact[i] == 1) {
+            for (int j = 2 * i; j <= n; j+=i) {
+                int val = 0;
+                int temp = j;
+                while (temp % i == 0) {
+                    temp /= i;
+                    val++;
+                }
+                // if (j == 6) {
+                    // debug (i);
+                    // debug (val);
+                // }
+                fact[j] *= val + 1;
+            }
+        }
+    }
+}
 
 int32_t main() {
     int t;
@@ -31,17 +51,22 @@ int32_t main() {
     while (t--) {
         int n, m;
         scanf("%lld%lld", &n, &m);
-        vector <int> cnt (m + 1, 0);
-        for (int i = 1; i <= n && i <= m; i++) {
-            cnt[m % i]++;
+        vector <int> fact (m + 1, 1);
+        sieve (fact, m);
+        for (int i = 0; i < (int) fact.size(); i++) {
+            if (fact[i] > 1) fact[i]--;
         }
         int ans = 0;
-        for (int i = 0; i <= m; i++) {
-            ans += (cnt[i] * (cnt[i] - 1)) / 2;
-        }
-        debug(ans);
-        for (int i = m + 1; i <= n; i++) {
-            ans += i - 1;
+        set <int> used;
+        for (int b = 2; b <= n; b++) {
+            int val = m / b;
+            if (!used.count(b) && !used.count(val)) {
+                debug (b * val);
+                debug (fact[b * val]);
+                ans += fact[b * val];
+                used.insert (val);
+                used.insert (b);
+            }
         }
         printf("%lld\n", ans);
     }
