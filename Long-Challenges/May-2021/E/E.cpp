@@ -23,24 +23,18 @@ void debug_out(vector<string> args, int idx, int LINE_NUM, Head H, Tail... T) {
     #define debug(...) 42
 #endif
 
+const int M = 5e5 + 1;
+
+// precompute across *all* testcases
+
 // do the sieve
-void sieve (vector <int>& fact, int n) {
+int number_of_operations = 0;
+void sieve (vector <vector <int>>& fact, int n) {
     // find the number of factors
     for (int i = 2; i <= n; i++) {
-        if (fact[i] == 1) {
-            for (int j = 2 * i; j <= n; j+=i) {
-                int val = 0;
-                int temp = j;
-                while (temp % i == 0) {
-                    temp /= i;
-                    val++;
-                }
-                // if (j == 6) {
-                    // debug (i);
-                    // debug (val);
-                // }
-                fact[j] *= val + 1;
-            }
+        for (int j = i; j <= n; j += i) {
+            fact[j].push_back (i);
+            number_of_operations++;
         }
     }
 }
@@ -48,26 +42,27 @@ void sieve (vector <int>& fact, int n) {
 int32_t main() {
     int t;
     cin >> t;
+    vector <vector <int>> fact (M);
+    sieve (fact, M);
     while (t--) {
         int n, m;
         scanf("%lld%lld", &n, &m);
-        vector <int> fact (m + 1, 1);
-        sieve (fact, m);
-        for (int i = 0; i < (int) fact.size(); i++) {
-            if (fact[i] > 1) fact[i]--;
-        }
         int ans = 0;
-        set <int> used;
-        for (int b = 2; b <= n; b++) {
-            int val = m / b;
-            if (!used.count(b) && !used.count(val)) {
-                debug (b * val);
-                debug (fact[b * val]);
-                ans += fact[b * val];
-                used.insert (val);
-                used.insert (b);
-            }
+        for (int b = 2; b <= n && b <= m; b++) {
+            int val = m - (m % b);
+            // debug (b);
+            // for (int i = 0; i < (int) fact[val].size(); i++) {
+                // printf("%lld ", fact[val][i]);
+            // }
+            // printf("\n");
+            auto ind = lower_bound (fact[val].begin(), fact[val].end(), b);
+            // debug (ind - fact[val].begin());
+            ans += ind - fact[val].begin() + 1;
+        }
+        for (int i = m + 1; i <= n; i++) {
+            ans += i - 1;
         }
         printf("%lld\n", ans);
     }
+    debug (number_of_operations);
 }

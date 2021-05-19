@@ -11,7 +11,7 @@ int main(int argc, char *argv[])
 {
 	srand(atoi(argv[1]));
     printf("1\n");
-	int n=rand(2,15);
-    int m = rand (1, 15);
+	int n=rand(10,500);
+    int m = rand (10, 500);
 	printf("%d %d\n",n, m);
 }

@@ -14,7 +14,7 @@ int32_t main() {
             for (int j = 1; j < i; j++) {
                 if ((m % j) % i == (m % i) % j) {
                     cnt++;
-                    printf("%lld %lld\n", i, j);
+                    // printf("%lld %lld\n", i, j);
                 }
             }
         }
