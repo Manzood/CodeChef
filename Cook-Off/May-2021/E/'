@@ -38,50 +38,43 @@ int32_t main() {
         }
         int onecnt = 0;
         for (int i = 0; i < (int) cycles.size(); i++) {
-            reverse (cycles[i].begin(), cycles[i].end());
+            printf("Cycle %lld: ", i + 1);
+            for (int j = 0; j < (int) cycles[i].size(); j++) {
+                printf("%lld ", cycles[i][(j + onecnt) % cycles[i].size()]);
+            }
+            printf("\n");
         }
-        for (int i = 0; i < n; i++) {
-            info[i].second = (int) cycles[info[i].first].size() - 1 - info[i].second;
-        }
-        // for (int i = 0; i < (int) cycles.size(); i++) {
-            // printf("Cycle %lld: ", i + 1);
-            // for (int j = (int) cycles[i].size() - 1; j >= 0; j--) {
-                // printf("%lld ", cycles[i][(j + onecnt) % cycles[i].size()]);
-            // }
-            // printf("\n");
-        // }
         scanf("%lld", &q);
         for (int i = 0; i < q; i++) {
             int op;
             scanf("%lld", &op);
             if (op == 1) {
                 onecnt++;
-                // for (int k = 0; k < (int) cycles.size(); k++) {
-                    // printf("Cycle %lld: ", k + 1);
-                    // for (int j = (int) cycles[k].size() - 1; j >= 0; j--) {
-                        // printf("%lld ", cycles[k][(j + onecnt) % cycles[k].size()]);
-                    // }
-                    // printf("\n");
-                // }
+                for (int k = 0; k < (int) cycles.size(); k++) {
+                    printf("Cycle %lld: ", k + 1);
+                    for (int j = 0; j < (int) cycles[k].size(); j++) {
+                        printf("%lld ", cycles[k][(j + onecnt) % cycles[k].size()]);
+                    }
+                    printf("\n");
+                }
             } else if (op == 2) {
                 int x, y;
                 scanf("%lld%lld", &x, &y);
                 x--; y--;
                 swap (cycles[info[x].first][(info[x].second + onecnt) % cycles[info[x].first].size()], cycles[info[y].first][(info[y].second + onecnt) % cycles[info[y].first].size()]);
-                // for (int k = 0; k < (int) cycles.size(); k++) {
-                    // printf("Cycle %lld: ", k + 1);
-                    // for (int j = (int) cycles[k].size() - 1; j >= 0; j--) {
-                        // printf("%lld ", cycles[k][(j + onecnt) % cycles[k].size()]);
-                    // }
-                    // printf("\n");
-                // }
+                for (int k = 0; k < (int) cycles.size(); k++) {
+                    printf("Cycle %lld: ", k + 1);
+                    for (int j = 0; j < (int) cycles[k].size(); j++) {
+                        printf("%lld ", cycles[k][(j + onecnt) % cycles[k].size()]);
+                    }
+                    printf("\n");
+                }
             } else {
                 int x;
                 scanf("%lld", &x);
                 // print the element at index x
                 x--;
-                // debug (info[x].second);
-                printf("%lld\n", cycles[info[x].first][(info[x].second + onecnt) % cycles[info[x].first].size()]);
+                printf("%lld\n", cycles[info[x].first][info[x].second]);
             }
         }
     }
