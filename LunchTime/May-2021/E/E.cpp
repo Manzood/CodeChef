@@ -5,18 +5,30 @@ using namespace std;
 
 int ans;
 
-int dfs (int node, vector <vector <int>>& adj, string& s) {
+pair <int, int> dfs (int node, vector <vector <int>>& adj, string& s) {
     // returns depth of the deepest token
-    int depth = 0;
+    pair <int, int> current = {0, 0};
     for (auto u: adj[node]) {
-        depth = max (depth, dfs (u, adj, s));
+        pair <int, int> temp = dfs (u, adj, s);
+        if (temp.first > current.first) {
+            current = temp;
+        } else if (temp.first == current.first) {
+            current.second += temp.second;
+        }
     }
     if (s[node] == '1') {
-        depth++;
+        current.first++;
+        if (current.second == 0) current.second++;
     } else {
-        ans += depth;
+        // debug (node);
+        // debug (current.first);
+        ans += current.first;
+        if (current.second > 1) {
+            current.second--;
+            current.first++;
+        }
     }
-    return depth;
+    return current;
 }
 
 int32_t main () {
