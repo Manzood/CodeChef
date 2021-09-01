@@ -9,58 +9,128 @@ int32_t main() {
     while (t--) {
         int n, m, k;
         scanf("%lld%lld%lld", &n, &m, &k);
+        vector <pair <int, int>> moves(n * m);
         vector <vector <char>> grid (n, vector <char> (m, '.'));
-        vector <vector <int>> dp (n, vector <int> (m, 0)); // up left
-        bool win = false;
-        int winner = -1;
-        for (int i = 0; i < n * m; i++) {
-            int x, y;
-            scanf("%lld%lld", &x, &y);
-            x--; y--;
-            char ch;
-            if (i % 2 == 0) {
-                ch = 'A';
-            } else {
-                ch = 'B';
-            }
-            grid[x][y] = ch;
 
-            if (!win && i >= k * k - 1) {
-                for (int tx = 0; tx < n; tx++) {
-                    for (int ty = 0; ty < m; ty++) {
-                        if (grid[tx][ty] == ch) {
-                            if (tx > 0 && ty > 0) {
-                                if (grid[tx][ty] == grid[tx-1][ty] && grid[tx][ty] == grid[tx][ty-1] && grid[tx][ty] == grid[tx-1][ty-1]) {
-                                    dp[tx][ty] = min (dp[tx-1][ty], min(dp[tx][ty-1], dp[tx-1][ty-1])) + 1;
-                                } else {
-                                    dp[tx][ty] = 1;
-                                }
-                            } else {
-                                dp[tx][ty] = 1;
-                            }
+        for (int i = 0; i < n * m; i++) {
+            scanf("%lld%lld", &moves[i].first, &moves[i].second);
+            moves[i].first--; moves[i].second--;
+
+            if (i % 2 == 0) grid[moves[i].first][moves[i].second] = 'A';
+            else grid[moves[i].first][moves[i].second] = 'B';
+        }
+
+        int pos = n * m;
+        int LOG = 1;
+        while (LOG * 2 <= pos) LOG *= 2;
+        // int jump = pos;
+        bool draw = true;
+
+        while (LOG > 0) {
+            // check if the grid at pos - jump has a winner
+            int temp = pos - LOG;
+            if (temp < 0) {
+                LOG /= 2;
+                continue;
+            }
+
+            for (int i = pos - 1; i >= temp; i--) {
+                grid[moves[i].first][moves[i].second] = '.';
+            }
+
+            // check the grid
+            vector <vector <int>> dp (n, vector <int> (m, 0));
+            bool found = false;
+
+            // debug (pos);
+            // debug (LOG);
+            for (int i = 0; i < n; i++) {
+                for (int j = 0; j < m; j++) {
+                    if (grid[i][j] == '.') {
+                        dp[i][j] = 0;
+                    } else {
+                        if (i > 0 && j > 0) {
+                            if (grid[i][j] == grid[i-1][j] && grid[i][j] == grid[i][j-1] && grid[i][j] == grid[i-1][j-1])
+                                dp[i][j] = min (dp[i-1][j], min(dp[i-1][j-1], dp[i][j-1])) + 1;
+                            else
+                                dp[i][j] = 1;
                         } else {
-                            dp[tx][ty] = 0;
+                            dp[i][j] = 1;
                         }
+                    }
+                    if (dp[i][j] >= k) {
+                        draw = false;
+                        found = true;
+                        // debug (i);
+                        // debug (j);
                     }
                 }
             }
+            // for (int i = 0; i < n; i++) {
+                // for (int j = 0; j < m; j++) {
+                    // printf("%c", grid[i][j]);
+                // }
+                // printf("\n");
+            // }
+            // debug (found);
 
-            if (!win && i >= k * k - 1) {
-                for (int ti = 0; ti < n; ti++) {
-                    for (int j = 0; j < m; j++) {
-                        if (dp[ti][j] >= k) {
-                            // debug (i);
-                            win = true;
-                            winner = i % 2;
-                            break;
+            // if it does, go there
+            // otherwise, go back
+            if (found) {
+                pos = temp;
+            }
+            else {
+                for (int i = temp; i < pos; i++) {
+                    if (i % 2 == 0) {
+                        grid[moves[i].first][moves[i].second] = 'A';
+                    } else {
+                        grid[moves[i].first][moves[i].second] = 'B';
+                    }
+                }
+            }
+            // debug ("printing again");
+            // for (int i = 0; i < n; i++) {
+                // for (int j = 0; j < m; j++) {
+                    // printf("%c", grid[i][j]);
+                // }
+                // printf("\n");
+            // }
+            // debug ("done");
+
+            LOG /= 2;
+        }
+
+        // debug (pos);
+        if (draw) {
+            vector <vector <int>> dp (n, vector <int> (m, 0));
+            for (int i = 0; i < n; i++) {
+                for (int j = 0; j < m; j++) {
+                    if (grid[i][j] == '.') {
+                        dp[i][j] = 0;
+                    } else {
+                        if (i > 0 && j > 0) {
+                            if (grid[i][j] == grid[i-1][j] && grid[i][j] == grid[i][j-1] && grid[i][j] == grid[i-1][j-1])
+                                dp[i][j] = min (dp[i-1][j], min(dp[i-1][j-1], dp[i][j-1])) + 1;
+                            else
+                                dp[i][j] = 1;
+                        } else {
+                            dp[i][j] = 1;
                         }
+                    }
+                    if (dp[i][j] >= k) {
+                        draw = false;
+                        // debug (i);
+                        // debug (j);
                     }
                 }
             }
         }
-        if (winner == -1) {
+
+        if (draw) {
+            // do a final check at the very end, if not found
+
             printf("Draw\n");
-        } else if (winner == 0) {
+        } else if (pos % 2 == 1) {
             printf("Alice\n");
         } else {
             printf("Bob\n");

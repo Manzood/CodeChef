@@ -11,7 +11,7 @@ int main(int argc, char *argv[])
 	srand (atoi (argv[1]));
     // test cases
     printf("1\n");
-	int n = rand (3,3);
+	int n = rand (1,8);
 	printf ("%d", n);
     // int m = rand (2, 10);
     // printf(" %d", m);
@@ -19,7 +19,7 @@ int main(int argc, char *argv[])
 	set <int> used;
 	for (int i = 0; i < n; i++) {
 		int x;
-        x = rand (0, 1000);
+        x = rand (0, 5);
         // to make x unique, uncomment the following
 		// do {
 			// x = rand (1, 100);

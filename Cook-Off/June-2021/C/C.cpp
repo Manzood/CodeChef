@@ -70,24 +70,14 @@ int32_t main() {
                 }
             }
         } else if (n == 3) {
-            vector <vector <int>> moves;
-            bool ans = check(a, n);
-            for (int i = 0; i < 3 && ans == false; i++) {
-                for (int j = 0; j < 3 && ans == false; j++) {
-                    if (j == i) continue;
-                    else {
-                        int z = 0;
-                        while (z == i || z == j) z++;
-                        moves.push_back ({i, j, z});
-                        a[z] = a[i] ^ a[j];
-                        if (check (a, n)) ans = true;
-                    }
-                }
-            }
-            if (ans) {
-                printf("%lld\n", (int) moves.size());
-                for (int i = 0; i < (int) moves.size(); i++) {
-                    printf("%lld %lld %lld\n", moves[i][0] + 1, moves[i][1] + 1, moves[i][2] + 1);
+            if (a[0] > 0 || a[1] > 0 || a[2] > 0) {
+                if (a[1] == 0) {
+                    printf("1\n");
+                    printf("1 2 3\n");
+                } else if (a[0] == a[2]) {
+                    printf("0\n");
+                } else {
+                    printf("-1\n");
                 }
             } else {
                 printf("-1\n");
