@@ -22,7 +22,7 @@ int dfs_gcd (int node, vector <int>& a, vector <vector <int>>& adj, vector <int>
     return retval;
 }
 
-void dfs_flattening(int node, vector<int> &a, vector<vector<int>> &adj, vector<int> &start, vector<int> &end, vector<int> &flattened) {
+void dfs_flattening (int node, vector<int> &a, vector<vector<int>> &adj, vector<int> &start, vector<int> &end, vector<int> &flattened) {
     if (visited[node]) return;
     flattened.push_back(a[node]);
     visited[node] = true;
