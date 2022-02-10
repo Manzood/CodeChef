@@ -9,73 +9,89 @@
 using namespace std;
 #define int long long
 
-const int mod = (int) 1e9 + 7;
+const int mod = (int)1e9 + 7;
 
-// bfs
-vector <int> assignments;
-vector <bool> visited;
-queue <int> q;
-void bfs (int start_node, vector <vector <int>>& adj) {
-    q.push(start_node);
-    while (!q.empty()) {
-        int node = q.front();
-        if (visited[node]) {
-            q.pop();
-            continue;
-        }
+// TODO: think properly. Spend less time debugging code and more time thinking of a correct soln
+
+// find the length of a cycle
+struct solver {
+    vector<bool> visited;
+    vector<bool> visiting;
+    vector <int> component_pos;
+    int ans = 1;
+    pair <int, int> dfs(int node, vector<vector<int>>& adj, int dist, vector <vector <int>>& dp) {
         visited[node] = true;
-        for (auto u: adj[node]) {
+        visiting[node] = true;
+        component_pos[node] = dist;
+        pair <int, int> cnt = {1, 0};
+        for (auto u : adj[node]) {
+            if (visiting[u]) {
+                // cycle detected
+                // get the answer for the distance of the cycle
+                int len = dist - component_pos[u];
+                cnt.second = len + 1;
+                ans *= dp[len][0];
+                ans %= mod;
+                visiting[u] = false;
+            }
             if (!visited[u]) {
-                q.push(u);
-                assignments[u]--;
-                assignments[u] = max(0LL, assignments[u]);
+                pair <int, int> temp = dfs (u, adj, dist + 1, dp);
+                cnt.first += temp.first;
+                cnt.second = max(temp.second, cnt.second);
             }
         }
-        q.pop();
+        visiting[node] = false;
+        return cnt;
     }
-}
-
-void solve() {
-    int n, m;
-    scanf("%lld%lld", &n, &m);
-    vector <vector <int>> adj(n);
-    vector <set <int>> s(n);
-    vector <int> a(n);
-    assignments.resize(n, m);
-    assignments.assign(n, m);
-    visited.resize(n, false);
-    visited.assign(n, false);
-    for (int i = 0; i < n; i++) {
-        scanf("%lld", &a[i]);
-        // handle repeats?
-        if (s[i].count(a[i] - 1) == 0) {
-            adj[i].push_back(a[i] - 1);
-            s[i].insert(a[i] - 1);
+    void solve() {
+        int n, m;
+        scanf("%lld%lld", &n, &m);
+        ans = 1;
+        vector<int> a(n);
+        vector<vector<int>> adj(n);
+        vector <vector <int>> dp (n + 1, vector <int> (2, 0));
+        vector <set <int>> s(n);
+        visited.resize(n, false);
+        visiting.resize(n, false);
+        component_pos.resize(n, 0);
+        dp[0][0] = 0;
+        dp[0][1] = m;
+        for (int i = 1; i <= n; i++) {
+            dp[i][0] = ((m - 1) * dp[i-1][1] % mod) + ((m - 2) * dp[i-1][0] % mod);
+            dp[i][1] = (dp[i-1][0] + dp[i-1][1]) % mod;
         }
-        if (s[a[i] - 1].count(i) == 0) {
-            adj[a[i] - 1].push_back(i);
-            s[a[i] - 1].insert(i);
+        for (int i = 0; i < n; i++) {
+            scanf("%lld", &a[i]);
+            // handle repeats?
+            // lambda might be better in this case
+            if (s[i].count(a[i] - 1) == 0) {
+                adj[i].push_back(a[i] - 1);
+                s[i].insert(a[i] - 1);
+            }
+            if (s[a[i] - 1].count(i) == 0) {
+                adj[a[i] - 1].push_back(i);
+                s[a[i] - 1].insert(i);
+            }
         }
-    }
-    for (int i = 0; i < n; i++) {
-        if (!visited[i]) {
-            assert((int) q.size() == 0);
-            bfs(i, adj);
+        for (int i = 0; i < n; i++) {
+            if (!visited[i]) {
+                pair<int, int> temp = dfs(i, adj, 0, dp);
+                int diff = temp.first - temp.second;
+                for (int j = 0; j < diff; j++) {
+                    ans *= (m - 1);
+                    ans %= mod;
+                }
+            }
         }
+        printf("%lld\n", ans);
     }
-    int ans = 1;
-    debug (assignments);
-    for (int i = 0; i < n; i++) {
-        ans *= assignments[i];
-        ans %= mod;
-    }
-    printf("%lld\n", ans);
-}
+};
 
 int32_t main() {
     int t = 1;
     cin >> t;
     for (int tt = 1; tt <= t; tt++) {
-        solve();
+        solver sol;
+        sol.solve();
     }
 }
