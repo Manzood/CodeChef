@@ -11,14 +11,13 @@ using namespace std;
 
 const int mod = (int)1e9 + 7;
 
-// TODO: think properly. Spend less time debugging code and more time thinking of a correct soln
-
 // find the length of a cycle
 struct solver {
     vector<bool> visited;
     vector<bool> visiting;
-    vector <int> component_pos;
+    vector<int> component_pos;
     int ans = 1;
+    int test_num;
     pair <int, int> dfs(int node, vector<vector<int>>& adj, int dist, vector <vector <int>>& dp) {
         visited[node] = true;
         visiting[node] = true;
@@ -43,14 +42,15 @@ struct solver {
         visiting[node] = false;
         return cnt;
     }
-    void solve() {
+
+    void solve([[maybe_unused]] int test) {
         int n, m;
         scanf("%lld%lld", &n, &m);
         ans = 1;
+        test_num = test;
         vector<int> a(n);
         vector<vector<int>> adj(n);
         vector <vector <int>> dp (n + 1, vector <int> (2, 0));
-        vector <set <int>> s(n);
         visited.resize(n, false);
         visiting.resize(n, false);
         component_pos.resize(n, 0);
@@ -58,20 +58,13 @@ struct solver {
         dp[0][1] = m;
         for (int i = 1; i <= n; i++) {
             dp[i][0] = ((m - 1) * dp[i-1][1] % mod) + ((m - 2) * dp[i-1][0] % mod);
-            dp[i][1] = (dp[i-1][0] + dp[i-1][1]) % mod;
+            dp[i][1] = dp[i-1][0];
         }
         for (int i = 0; i < n; i++) {
             scanf("%lld", &a[i]);
             // handle repeats?
             // lambda might be better in this case
-            if (s[i].count(a[i] - 1) == 0) {
-                adj[i].push_back(a[i] - 1);
-                s[i].insert(a[i] - 1);
-            }
-            if (s[a[i] - 1].count(i) == 0) {
-                adj[a[i] - 1].push_back(i);
-                s[a[i] - 1].insert(i);
-            }
+            adj[i].push_back(a[i] - 1); // making it purely directed
         }
         for (int i = 0; i < n; i++) {
             if (!visited[i]) {
@@ -92,6 +85,6 @@ int32_t main() {
     cin >> t;
     for (int tt = 1; tt <= t; tt++) {
         solver sol;
-        sol.solve();
+        sol.solve(tt);
     }
 }
