@@ -9,8 +9,6 @@
 using namespace std;
 #define int long long
 
-const int MX_N = 64;
-
 int floorSqrt(int x) {
     if (x == 0 || x == 1) return x;
     int start = 1, end = x / 2, ans;
@@ -39,95 +37,83 @@ void solve([[maybe_unused]] int test) {
     for (int i = 0; i < n; i++) {
         scanf("%lld", &a[i]);
     }
-    vector<vector<int>> d(n, vector<int>(MX_N, 0));
-    vector<vector<int>> sq(n, vector<int>(MX_N, 0));
+    vector<vector<int>> values(n);
+    vector<vector<int>> moves(n);
+    // for (int i = 0; i < n; i++) {
+    //     int cur = a[i];
+    //     while (cur > 1) {
+    //         cur = floorSqrt(cur);
+    //         values[i].push_back(cur);
+    //     }
+    //     reverse(values[i].begin(), values[i].end());
+    //     for (int j = 0; j < (int)values[i].size(); j++) {
+    //         moves[i].push_back((int)values[i].size() - j);
+    //     }
+    //     values[i].push_back(a[i]);
+    //     moves[i].push_back(0);
+    //     cur = a[i];
+    //     int cnt = 1;
+    //     while (cur > 1 && cur <= (int)1e9) {
+    //         cur *= cur;
+    //         values[i].push_back(cur);
+    //         moves[i].push_back(cnt++);
+    //     }
+    // }
+    // changing how I'm calculating values
     for (int i = 0; i < n; i++) {
-        d[i][0] = a[i];
-        int val = a[i];
-        for (int j = 1; j < MX_N; j++) {
-            val = (int)floorSqrt(val);
-            d[i][j] = val;
-        }
-    }
-    for (int i = 0; i < n; i++) {
-        sq[i][0] = a[i];
-        int val = a[i];
-        for (int j = 1; j < MX_N; j++) {
-            if (val <= (int)1e9) val *= val;
-            sq[i][j] = val;
-        }
-    }
-    for (int i = 0; i < n; i++) {
-        reverse(d[i].begin(), d[i].end());
-    }
-    vector<vector<int>> dec(
-        n, vector<int>(MX_N,
-                       0));  // dec[i][j] -> minimum number of operations to get
-                             // increasing order with d[i][j] up to index i
-    vector<vector<int>> inc(
-        n, vector<int>(
-               MX_N,
-               0));  // inc[i][j] -> minimum number of operations to get
-                     // increasing order with *exactly* sq[i][j] up to index i
-    vector<vector<int>> best(
-        n,
-        vector<int>(
-            MX_N,
-            0));  // best[i][j] -> minimum number of operaions to get increasing
-                  // order with value *up to* sq[i][j] up to index i
-    vector<vector<int>> best2(n, vector<int>(MX_N, 0));
-    for (int i = 0; i < n; i++) {
-        if (i > 0) {
-            int prev_ptr = 0;
-            int ptr = 0;
-            for (int j = 0; j < MX_N; j++) {
-                bool smaller = d[i][j] <= a[i - 1];
-                if (smaller) {
-                    while (prev_ptr < MX_N - 1 &&
-                           d[i - 1][prev_ptr + 1] <= d[i][j])
-                        prev_ptr++;
-                    dec[i][j] = best2[i - 1][prev_ptr] + (MX_N - 1 - j);
-                } else {
-                    while (ptr < MX_N - 1 && sq[i - 1][ptr + 1] <= d[i][j])
-                        ptr++;
-                    dec[i][j] = best[i - 1][ptr] + (MX_N - 1 - j);
-                }
-                best2[i][j] = dec[i][j];
-                if (j > 0) best2[i][j] = min(best2[i][j], best2[i][j - 1]);
+        queue<pair<int, int>> q;
+        vector<pair<int, int>> v;
+        set<int> found;
+        q.push({a[i], 0});
+        found.insert(a[i]);
+        while (!q.empty()) {
+            pair<int, int> f = q.front();
+            // debug(f);
+            v.push_back(f);
+            q.pop();
+            // square and go lower
+            if (f.first > 1) {
+                int val = floorSqrt(f.first);
+                if (!found.count(val)) q.push({val, f.second + 1});
+                found.insert(val);
             }
-            // calculate inc
-            prev_ptr = 0;
-            ptr = 0;
-            for (int j = 0; j < MX_N; j++) {
-                bool smaller = sq[i][j] <= a[i - 1];
-                if (smaller) {
-                    while (prev_ptr < MX_N - 1 &&
-                           d[i - 1][prev_ptr + 1] <= sq[i][j])
-                        prev_ptr++;
-                    inc[i][j] = best2[i - 1][prev_ptr] + j;
-                } else {
-                    while (ptr < MX_N - 1 && sq[i - 1][ptr + 1] <= sq[i][j])
-                        ptr++;
-                    inc[i][j] = best[i - 1][ptr] + j;
-                }
-                best[i][j] = inc[i][j];
-                if (j > 0) best[i][j] = min(best[i][j], best[i][j - 1]);
-            }
-        } else {
-            for (int j = 0; j < MX_N; j++) {
-                dec[i][j] = MX_N - 1 - j;
-                inc[i][j] = j;
-                best[i][j] = 0;
-                best2[i][j] = 0;
+            if (f.first <= (int)1e9) {
+                int val = f.first * f.first;
+                if (!found.count(val)) q.push({val, f.second + 1});
+                found.insert(val);
             }
         }
+        sort(v.begin(), v.end());
+        for (int j = 0; j < (int)v.size(); j++) {
+            values[i].push_back(v[j].first);
+            moves[i].push_back(v[j].second);
+        }
     }
-    int fin = (int)1e18 + 7;
-    for (int i = 0; i < MX_N; i++) {
-        fin = min(fin, best2[n - 1][i]);
-        fin = min(fin, best[n - 1][i]);
+    // got all values
+    vector<vector<int>> dp(n);
+    dp[0].resize(values[0].size());
+    for (int i = 0; i < (int)moves[0].size(); i++) {
+        dp[0][i] = moves[0][i];
+        if (i > 0) dp[0][i] = min(dp[0][i], dp[0][i - 1]);
     }
-    printf("%lld\n", fin);
+    for (int i = 1; i < n; i++) {
+        dp[i].resize(values[i].size());
+        int k = 0;
+        for (int j = 0; j < (int)values[i].size(); j++) {
+            while (k < (int)values[i - 1].size() - 1 &&
+                   values[i - 1][k + 1] <= values[i][j]) {
+                k++;
+            }
+            dp[i][j] = dp[i - 1][k] + moves[i][j];
+            if (j > 0) dp[i][j] = min(dp[i][j], dp[i][j - 1]);
+        }
+    }
+    // debug(dp);
+    int ans = (int)1e18 + 7;
+    for (int i = 0; i < (int)values[n - 1].size(); i++) {
+        ans = min(ans, dp[n - 1][i]);
+    }
+    printf("%lld\n", ans);
 }
 
 int32_t main() {
