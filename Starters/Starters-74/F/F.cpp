@@ -10,79 +10,92 @@ using namespace std;
 #define int long long
 
 constexpr int MOD = (int)1e9 + 7;
+constexpr int INF = MOD;
 
-vector<int> marked;
-int checkcycle(int src, int dest, vector<int>& par, vector<int>& indegree) {
-    int cur = src;
-    int len = 1;
-    marked[cur] = true;
-    while (cur != dest) {
-        if (indegree[cur] > 1) {
-            return -1;
-        }
-        cur = par[cur];
-        len++;
-        marked[cur] = true;
-        assert(len < (int)3e5);
-    }
-    return len;
-}
-
-vector<bool> visited, visiting;
-int ans = 1;
-void dfs(int node, vector<vector<int>>& adj, vector<int>& par,
-         vector<int>& indegree) {
+vector<bool> visited;
+void dfs(int node, vector<vector<int>>& adj, int& curtime, vector<int>& tout) {
     if (visited[node]) return;
     visited[node] = true;
-    visiting[node] = true;
     for (auto u : adj[node]) {
-        if (visiting[u]) {
-            int len = checkcycle(node, u, par, indegree);
-            if (len != -1) {
-                int val = 1;
-                for (int i = 0; i < len; i++) {
-                    val *= 2;
-                    val %= MOD;
-                }
-                val--;
-                if (val < 0) val += MOD;
-                ans *= val;
-                ans %= MOD;
-            }
-        } else {
-            par[u] = node;
-            dfs(u, adj, par, indegree);
-        }
+        dfs(u, adj, curtime, tout);
     }
-    visiting[node] = false;
+    tout[node] = curtime;
+    curtime++;
+}
+
+bool dfs2(int node, vector<vector<int>>& adj, vector<int>& color, int c) {
+    if (visited[node]) return true;
+    bool retval = true;
+    visited[node] = true;
+    color[node] = c;
+    for (auto u : adj[node]) {
+        if (color[u] != -1 && color[u] != color[node]) retval = false;
+        retval &= dfs2(u, adj, color, c);
+    }
+    return retval;
 }
 
 void solve([[maybe_unused]] int test) {
     int n, m;
     scanf("%lld%lld", &n, &m);
-    vector<pair<int, int>> edges(n);  // second to first
-    vector<vector<int>> adj(m);
-    vector<int> indegree(m, 0);
-    marked.assign(m, false);
-    for (int i = 0; i < n; i++) {
+    swap(n, m);
+    vector<pair<int, int>> edges(m);
+    vector<vector<int>> adj(n);
+    for (int i = 0; i < m; i++) {
         scanf("%lld%lld", &edges[i].first, &edges[i].second);
         adj[--edges[i].second].push_back(--edges[i].first);
-        indegree[edges[i].first]++;
     }
-    for (int i = 0; i < m; i++)
-        if (indegree[i] == 0) marked[i] = true;
-    ans = 1;
-    visited.assign(m, false);
-    visiting.assign(m, false);
-    vector<int> par(m, -1);
-    for (int i = 0; i < m; i++) {
-        if (!visited[i]) {
-            dfs(i, adj, par, indegree);
+    // do 2 dfs to get the strongly connected components + how many edges per
+    // component + condensed graph
+    vector<int> tout(n, INF);
+    int curtime = 0;
+    visited.assign(n, false);
+    for (int i = 0; i < n; i++)
+        if (!visited[i]) dfs(i, adj, curtime, tout);
+    vector<pair<int, int>> ftime(n);
+    for (int i = 0; i < n; i++) {
+        ftime[i] = {tout[i], i};
+    }
+    sort(ftime.rbegin(), ftime.rend());
+    vector<vector<int>> transpose(n);
+    for (int i = 0; i < n; i++) {
+        for (auto x : adj[i]) {
+            transpose[x].push_back(i);
         }
     }
-    for (int i = 0; i < m; i++) {
-        if (!marked[i]) {
+    // do the second dfs in the reverse order
+    visited.assign(n, false);
+    vector<int> color(n, -1);
+    int colors_count = 0;
+    vector<bool> mark_color(n, false);
+    for (int i = 0; i < n; i++) {
+        int cur = ftime[i].second;
+        if (!visited[cur]) {
+            bool found = dfs2(cur, transpose, color, colors_count++);
+            mark_color[colors_count - 1] = found;
+        }
+    }
+    // debug(mark_color);
+    int ans = 1;
+    for (int i = 0; i < n; i++)
+        if (!mark_color[color[i]]) {
             ans *= 2;
+            ans %= MOD;
+        }
+    vector<int> sz(n, 0);
+    for (int i = 0; i < n; i++) {
+        sz[color[i]]++;
+    }
+    for (int i = 0; i < n; i++) {
+        if (mark_color[i]) {
+            int val = 1;
+            for (int j = 0; j < sz[i]; j++) {
+                val *= 2;
+                val %= MOD;
+            }
+            val--;
+            if (val < 0) val += MOD;
+            ans *= val;
             ans %= MOD;
         }
     }
