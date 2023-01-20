@@ -10,29 +10,25 @@ using namespace std;
 #define int long long
 
 constexpr int MOD = (int)1e9 + 7;
-constexpr int INF = MOD;
 
 vector<bool> visited;
-void dfs(int node, vector<vector<int>>& adj, int& curtime, vector<int>& tout) {
+void dfs1(int node, vector<vector<int>>& adj, vector<int>& order) {
     if (visited[node]) return;
     visited[node] = true;
-    for (auto u : adj[node]) {
-        dfs(u, adj, curtime, tout);
-    }
-    tout[node] = curtime;
-    curtime++;
+    for (auto u : adj[node]) dfs1(u, adj, order);
+    order.push_back(node);
 }
 
-bool dfs2(int node, vector<vector<int>>& adj, vector<int>& color, int c) {
-    if (visited[node]) return true;
-    bool retval = true;
+void dfs2(int node, vector<vector<int>>& adj, vector<int>& component,
+          vector<int>& components, int c) {
+    if (visited[node]) return;
     visited[node] = true;
-    color[node] = c;
-    for (auto u : adj[node]) {
-        if (color[u] != -1 && color[u] != color[node]) retval = false;
-        retval &= dfs2(u, adj, color, c);
+    if (c == -1) {
+        c = node;
+        components.push_back(node);
     }
-    return retval;
+    component[node] = c;
+    for (auto u : adj[node]) dfs2(u, adj, component, components, c);
 }
 
 void solve([[maybe_unused]] int test) {
@@ -45,67 +41,43 @@ void solve([[maybe_unused]] int test) {
         scanf("%lld%lld", &edges[i].first, &edges[i].second);
         adj[--edges[i].second].push_back(--edges[i].first);
     }
-    // do 2 dfs to get the strongly connected components + how many edges per
-    // component + condensed graph
-    vector<int> tout(n, INF);
-    int curtime = 0;
+    vector<int> order;
     visited.assign(n, false);
-    for (int i = 0; i < n; i++)
-        if (!visited[i]) dfs(i, adj, curtime, tout);
-    vector<pair<int, int>> ftime(n);
-    for (int i = 0; i < n; i++) {
-        ftime[i] = {tout[i], i};
-    }
-    sort(ftime.rbegin(), ftime.rend());
+    for (int i = 0; i < n; i++) dfs1(i, adj, order);
+    reverse(order.begin(), order.end());
     vector<vector<int>> transpose(n);
-    for (int i = 0; i < n; i++) {
-        for (auto x : adj[i]) {
-            transpose[x].push_back(i);
-        }
-    }
-    // do the second dfs in the reverse order
-    visited.assign(n, false);
-    vector<int> color(n, -1);
-    int colors_count = 0;
-    vector<bool> mark_color(n, false);
-    for (int i = 0; i < n; i++) {
-        int cur = ftime[i].second;
-        if (!visited[cur]) {
-            bool found = dfs2(cur, transpose, color, colors_count++);
-            mark_color[colors_count - 1] = found;
-        }
-    }
-    // debug(mark_color);
-    int ans = 1;
     for (int i = 0; i < n; i++)
-        if (!mark_color[color[i]]) {
-            ans *= 2;
-            ans %= MOD;
-        }
-    vector<int> sz(n, 0);
-    for (int i = 0; i < n; i++) {
-        sz[color[i]]++;
-    }
-    for (int i = 0; i < n; i++) {
-        if (mark_color[i]) {
+        for (auto x : adj[i]) transpose[x].push_back(i);
+    vector<int> component(n), components;
+    visited.assign(n, false);
+    for (auto node : order) dfs2(node, transpose, component, components, -1);
+    vector<vector<int>> condensed_graph(n);
+    vector<int> indegree(n, 0), sz(n, 0);
+    for (int i = 0; i < n; i++)
+        for (auto u : adj[i])
+            if (component[u] != component[i])
+                condensed_graph[component[i]].push_back(component[u]);
+    for (int i = 0; i < n; i++) sz[component[i]]++;
+    for (int i = 0; i < n; i++)
+        for (auto u : condensed_graph[i]) indegree[u]++;
+    int ans = 1;
+    vector<int> marked_component(n, false);
+    for (auto u : components) {
+        if (indegree[u] == 0) {
+            marked_component[u] = true;
             int val = 1;
-            for (int j = 0; j < sz[i]; j++) {
-                val *= 2;
-                val %= MOD;
-            }
-            val--;
-            if (val < 0) val += MOD;
-            ans *= val;
-            ans %= MOD;
+            for (int i = 0; i < sz[u]; i++) (val *= 2) %= MOD;
+            (val += MOD - 1) %= MOD;
+            (ans *= val) %= MOD;
         }
     }
+    for (int i = 0; i < n; i++)
+        if (!marked_component[component[i]]) (ans *= 2) %= MOD;
     printf("%lld\n", ans);
 }
 
 int32_t main() {
     int t = 1;
     cin >> t;
-    for (int tt = 1; tt <= t; tt++) {
-        solve(tt);
-    }
+    for (int tt = 1; tt <= t; tt++) solve(tt);
 }
