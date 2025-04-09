@@ -19,26 +19,22 @@ void solve([[maybe_unused]] int test) {
         scanf("%lld", &a[i]);
     }
     vector<vector<int>> dp(n + 1, vector<int>(k + 1, 0));
-    // taking the first i elements, what is the number of strictly increasing
-    // subsequences with final value at most k
-    if (a[0] == -1) {
-        for (int i = 1; i <= k; i++) dp[1][i] = i;
-    } else {
-        for (int i = a[0]; i <= k; i++) dp[1][i] = 1;
-    }
-    if (test == 1) debug(dp);
-    for (int i = 2; i <= n; i++) {
+    for (int i = 1; i <= n; i++) {
+        int val = a[i - 1];
         dp[i] = dp[i - 1];
-        if (a[i - 1] == -1) {
+        if (val == -1) {
+            int tot = 0;
             for (int j = 1; j <= k; j++) {
-                dp[i][j] += dp[i - 1][j - 1];
+                tot += dp[i - 1][j - 1] + 1;
+                dp[i][j] += tot;
             }
         } else {
-            for (int j = a[i - 1]; j <= k; j++) {
-                dp[i][j] += dp[i - 1][a[i - 1] - 1];
+            for (int j = val; j <= k; j++) {
+                dp[i][j] += dp[i - 1][val - 1] + 1;
             }
         }
     }
+    debug(dp);
     printf("%lld\n", dp[n][k]);
 }
 
